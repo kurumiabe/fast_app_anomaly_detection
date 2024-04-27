@@ -1,0 +1,2 @@
+# fast_app_anomaly_detection
+胡桃の異常検知アプリ
