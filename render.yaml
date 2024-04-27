@@ -1,0 +1,11 @@
+# Exported from Render on 2024-04-27T11:56:41Z
+services:
+- type: web
+  name: fast_app_anomaly_detection
+  runtime: python
+  repo: https://github.com/kurumiabe/fast_app_anomaly_detection
+  plan: free
+  region: singapore
+  buildCommand: pip install -r requirements.txt
+   startCommand: "uvicorn main:app --reload --host 0.0.0.0"
+version: "1"
