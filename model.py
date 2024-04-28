@@ -108,22 +108,8 @@ def preprocess_image(image_path: str, augment: bool = False) -> torch.Tensor:
     return image_tensor
 
 def generate_heatmap(model, image_tensor, output, idx, results_folder):
-    """
-    与えられた画像テンソルと再構成された画像テンソルからヒートマップを生成し、ファイルに保存します。
-
-    Args:
-        model: モデルのインスタンス。
-        image_tensor (torch.Tensor): 元の画像のテンソル。
-        reconstructed_image_tensor (torch.Tensor): 再構成された画像のテンソル。
-        idx (str): 画像の識別子。
-        results_folder (str): 結果を保存するフォルダのパス。
-
-    Returns:
-        str: 生成されたヒートマップ画像のファイルパス。
-    """
     # 元の画像と再構成された画像からピクセル単位の差を計算
-    # difference = torch.abs(image_tensor - reconstructed_image_tensor)
-    difference = torch.abs(image_tensor - output) # 修正箇所
+    difference = torch.abs(image_tensor - output)
     
     # ヒートマップ用にデータを0-255のスケールに変換
     difference = difference.squeeze().numpy()  # バッチ次元を削除
@@ -133,21 +119,10 @@ def generate_heatmap(model, image_tensor, output, idx, results_folder):
     # ヒートマップを適用
     heatmap = cv2.applyColorMap(difference, cv2.COLORMAP_JET)
     
-    # ヒートマップをファイルに保存
-    # heatmap_path = os.path.join(results_folder, f"{idx}_heatmap.jpg")
-    # cv2.imwrite(heatmap_path, heatmap)
+    # ヒートマップをファイルに保存するディレクトリパス（FastAPIのstaticディレクトリ内）
+    heatmap_path = os.path.join(results_folder, f"{idx}_heatmap.jpg")
     
-    # ヒートマップを保存する新しいディレクトリパス
-    heatmap_dir = "C:\\Users\\kuuqu\\dl\\hazelnut\\main\\heatmap"
-
-    # ディレクトリが存在しない場合は作成
-    if not os.path.exists(heatmap_dir):
-        os.makedirs(heatmap_dir)
-
-    # 新しい保存先パスを設定
-    heatmap_path = os.path.join(heatmap_dir, f"{idx}_heatmap.jpg")
-
-    # ヒートマップを新しいパスに保存
+    # ヒートマップをファイルに保存
     cv2.imwrite(heatmap_path, heatmap)
 
     return heatmap_path
