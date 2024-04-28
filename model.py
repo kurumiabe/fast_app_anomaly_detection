@@ -122,7 +122,8 @@ def generate_heatmap(model, image_tensor, output, idx, results_folder):
         str: 生成されたヒートマップ画像のファイルパス。
     """
     # 元の画像と再構成された画像からピクセル単位の差を計算
-    difference = torch.abs(image_tensor - reconstructed_image_tensor)
+    # difference = torch.abs(image_tensor - reconstructed_image_tensor)
+    difference = torch.abs(image_tensor - **output**) # 修正箇所
     
     # ヒートマップ用にデータを0-255のスケールに変換
     difference = difference.squeeze().numpy()  # バッチ次元を削除
@@ -160,7 +161,7 @@ def calculate_anomaly_score(original, reconstructed):
         reconstructed (torch.Tensor): 再構成された画像テンソル。
         
     Returns:
-        float: 異常スコア（MSE）。
+        float: 異常スコア（MSE）
     """
     mse_loss = torch.nn.functional.mse_loss(original, reconstructed, reduction='mean')
     return mse_loss.item()
