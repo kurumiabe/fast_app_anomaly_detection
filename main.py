@@ -2,6 +2,7 @@
 # FastAPIを用いてバックエンドAPIの処理を定義しています。
 #アップロードされたZIPファイルを解凍し、画像ファイルごとに異常検知を行い、結果を返します
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.staticfiles import StaticFiles
 from typing import List
 import uvicorn
 import shutil
@@ -13,7 +14,6 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 from model import CustomModel, preprocess_image, generate_heatmap, calculate_anomaly_score,infer_and_save_heatmap
-from model import *
 from fastapi.staticfiles import StaticFiles  # 静的ファイルのインポート
 
 app = FastAPI()
@@ -21,7 +21,7 @@ app = FastAPI()
 # 静的ファイルのマウント
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# モデルの読み込み（適宜パスを修正してください）
+# モデルの読み込み
 MODEL_PATH = "model/hz_model_ver1.pth"
 model = CustomModel()
 model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))
@@ -55,13 +55,13 @@ async def upload_zip(file: UploadFile = File(...)):
                     is_anomaly = anomaly_score > threshold ## 異常閾値 threshold = 0.05 を超えていたら異常
                     
                     idx = os.path.splitext(filename)[0]
-                    heatmap_path = generate_heatmap(model, image_tensor, output, idx, results_dir) #異常があった場合、ヒートマップを生成
+                    heatmap_path = generate_heatmap(model, image_tensor, output, idx, "static") #異常があった場合、ヒートマップを生成
 
                     results.append({
                         "filename": filename,
                         "anomaly_score": anomaly_score,
                         "is_anomaly": is_anomaly,
-                        "heatmap_path": heatmap_path
+                        "heatmap_path": "/static/" + os.path.basename(heatmap_path) # 外部からアクセス可能なURL
                     })
         return {"results": results}
 
