@@ -107,7 +107,7 @@ def preprocess_image(image_path: str, augment: bool = False) -> torch.Tensor:
     image_tensor = preprocess(image).unsqueeze(0)  # バッチ次元の追加
     return image_tensor
 
-def generate_heatmap(model, image_tensor, reconstructed_image_tensor, idx, results_folder):
+def generate_heatmap(model, image_tensor, output, idx, results_folder):
     """
     与えられた画像テンソルと再構成された画像テンソルからヒートマップを生成し、ファイルに保存します。
 
