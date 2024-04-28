@@ -55,7 +55,7 @@ async def upload_zip(file: UploadFile = File(...)):
                     is_anomaly = anomaly_score > threshold ## 異常閾値 threshold = 0.05 を超えていたら異常
                     
                     idx = os.path.splitext(filename)[0]
-                    heatmap_path = generate_heatmap(model, image_tensor, **output**, idx, "static") #異常があった場合、ヒートマップを生成
+                    heatmap_path = generate_heatmap(model, image_tensor, output, idx, "static") #異常があった場合、ヒートマップを生成
 
                     results.append({
                         "filename": filename,
