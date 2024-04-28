@@ -1,6 +1,6 @@
 # main.py
 # FastAPIを用いてバックエンドAPIの処理を定義しています。
-#アップロードされたZIPファイルを解凍し、画像ファイルごとに異常検知を行い、結果を返
+#アップロードされたZIPファイルを解凍し、画像ファイルごとに異常検知を行い、結果を返します
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from typing import List
 import uvicorn
@@ -14,8 +14,12 @@ from PIL import Image
 import numpy as np
 from model import CustomModel, preprocess_image, generate_heatmap, calculate_anomaly_score,infer_and_save_heatmap
 from model import *
+from fastapi.staticfiles import StaticFiles  # 静的ファイルのインポート
 
 app = FastAPI()
+
+# 静的ファイルのマウント
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # モデルの読み込み（適宜パスを修正してください）
 MODEL_PATH = "model/hz_model_ver1.pth"
@@ -63,42 +67,3 @@ async def upload_zip(file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-# @app.post("/upload_zip/")
-# async def upload_zip(file: UploadFile = File(...)):
-#     if file.content_type != 'application/zip':
-#         raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a ZIP file.")
-    
-#     with TemporaryDirectory() as tmp_dir:
-#         zip_path = os.path.join(tmp_dir, file.filename)
-#         with open(zip_path, 'wb') as f:
-#             shutil.copyfileobj(file.file, f)
-#         shutil.unpack_archive(zip_path, tmp_dir)
-
-#         results = []
-#         for root, _, files in os.walk(tmp_dir):
-#             for filename in files:
-#                 if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-#                     img_path = os.path.join(root, filename)
-#                     image_tensor = preprocess_image(img_path)  # 画像をテンソルに変換
-
-#                     with torch.no_grad():
-#                         output = model(image_tensor)  # モデルで予測
-
-#                     # idxはファイル名など一意の識別子を使用
-#                     idx = os.path.splitext(filename)[0]
-
-#                     # 修正: generate_heatmap関数にimage_tensorも渡す
-#                     heatmap_path = generate_heatmap(model, image_tensor, output, idx, tmp_dir)
-
-                
-#                 results.append({
-#                     "filename": filename,
-#                     "anomaly_score": anomaly_score,
-#                     "is_anomaly": is_anomaly,
-#                     "heatmap_path": heatmap_path  # ヒートマップのファイルパスを結果に含める
-#                 })
-#         return {"results": results}
-
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
