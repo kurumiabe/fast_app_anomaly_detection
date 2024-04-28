@@ -6,7 +6,7 @@ from io import BytesIO
 st.title('胡桃の異常検知アプリ')
 
 uploaded_file = st.file_uploader("Zipファイルをアップロードしてください", type="zip")
-if uploaded_file is not None and st.button('分類開始'):#ファイルがアップロードされて,「分類開始」であるボタンが押された場合
+if uploaded_file is not None and st.button('分類開始'):
     files = {"file": (uploaded_file.name, uploaded_file, "application/zip")}
     response = requests.post("https://fast-app-anomaly-detection.onrender.com/upload_zip/", files=files)#アップロードされたファイルをFastAPIサーバーに送信
     if response.status_code == 200:
@@ -15,6 +15,7 @@ if uploaded_file is not None and st.button('分類開始'):#ファイルがア�
             st.write(f"ファイル名: {result['filename']}, 異常スコア: {result['anomaly_score']:.4f}")
             if result['is_anomaly']:
                 st.error("異常が検出されました！")
+                st.write("Heatmap URL:", result['heatmap_path']) # URLを出力して確認
                 # ヒートマップ画像を直接ロードして表示
                 response_heatmap = requests.get(result['heatmap_path'])
                 image = Image.open(BytesIO(response_heatmap.content))
