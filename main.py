@@ -28,6 +28,7 @@ threshold = 0.05
 
 @app.post("/upload_zip/")
 async def upload_zip(request: Request, file: UploadFile = File(...)):
+    
     if file.content_type != 'application/zip':
         raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a ZIP file.")
     
@@ -39,7 +40,8 @@ async def upload_zip(request: Request, file: UploadFile = File(...)):
 
         results = []
         for root, _, files in os.walk(tmp_dir):
-            base_url = request.base_url.rstrip('/') + '/'  # 確実に末尾にスラッシュを保持
+            # `base_url` を `str()` で文字列に変換し、末尾のスラッシュを正しく処理
+            base_url = str(request.base_url).rstrip('/') + '/' # `str()` で型変換を明示
             for filename in files:
                 if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
                     img_path = os.path.join(root, filename)
