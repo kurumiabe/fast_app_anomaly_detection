@@ -28,6 +28,11 @@ threshold = 0.05
 
 @app.post("/upload_zip/")
 async def upload_zip(request: Request, file: UploadFile = File(...)):
+    # 現在のディレクトリをログに出力
+    print(f"Current directory: {os.getcwd()}")
+    # 'static'ディレクトリのパスを絶対パスでログに出力
+    static_dir = os.path.abspath("static")
+    print(f"Static directory path: {static_dir}")
     
     if file.content_type != 'application/zip':
         raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a ZIP file.")
