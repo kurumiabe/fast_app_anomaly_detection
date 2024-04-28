@@ -51,7 +51,7 @@ async def upload_zip(file: UploadFile = File(...), request: Request):
                     anomaly_score = calculate_anomaly_score(image_tensor, output)
                     is_anomaly = anomaly_score > threshold
                     heatmap_filename = f"{os.path.splitext(filename)[0]}_heatmap.jpg"
-        　　　　　　 full_heatmap_path = urljoin(base_url, f"static/{heatmap_filename}")
+                    full_heatmap_path = urljoin(base_url, f"static/{heatmap_filename}")
                     
                     results.append({
                         "filename": filename,
