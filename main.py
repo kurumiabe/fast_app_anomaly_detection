@@ -39,6 +39,7 @@ async def upload_zip(file: UploadFile = File(...), request: Request):
 
         results = []
         for root, _, files in os.walk(tmp_dir):
+            base_url = request.base_url.rstrip('/') + '/'  # 確実に末尾にスラッシュを保持
             for filename in files:
                 if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
                     img_path = os.path.join(root, filename)
@@ -50,9 +51,7 @@ async def upload_zip(file: UploadFile = File(...), request: Request):
                     anomaly_score = calculate_anomaly_score(image_tensor, output)
                     is_anomaly = anomaly_score > threshold
                     heatmap_filename = f"{os.path.splitext(filename)[0]}_heatmap.jpg"
-                    heatmap_path = generate_heatmap(model, image_tensor, output, heatmap_filename, "static")
-                    
-                    full_heatmap_path = urljoin(request.base_url, f"static/{heatmap_filename}")
+        　　　　　　 full_heatmap_path = urljoin(base_url, f"static/{heatmap_filename}")
                     
                     results.append({
                         "filename": filename,
