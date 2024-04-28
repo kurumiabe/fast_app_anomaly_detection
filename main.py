@@ -31,7 +31,8 @@ model.eval()
 threshold = 0.05
 
 @app.post("/upload_zip/") #ZIPファイルを受け取り、解凍後の画像に対して異常検知を行うエンドポイント
-async def upload_zip(file: UploadFile = File(...)):
+async def upload_zip(file: UploadFile = File(...), request: Request):
+    base_url = str(request.base_url)
     if file.content_type != 'application/zip':
         raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a ZIP file.")
     
@@ -57,12 +58,22 @@ async def upload_zip(file: UploadFile = File(...)):
                     idx = os.path.splitext(filename)[0]
                     heatmap_path = generate_heatmap(model, image_tensor, output, idx, "static") #異常があった場合、ヒートマップを生成
 
-                    results.append({
-                        "filename": filename,
-                        "anomaly_score": anomaly_score,
-                        "is_anomaly": is_anomaly,
-                        "heatmap_path": "/static/" + os.path.basename(heatmap_path) # 外部からアクセス可能なURL
-                    })
+　　　　　　　　　　　# ベースURLの取得
+　　　　　　　　　　　base_url = str(request.base_url)
+
+　　　　　　　　　　　# ヒートマップのファイル名を決定
+　　　　　　　　　　　heatmap_filename = "some_generated_name.jpg"
+　　　　　　　　　　　# フルURLの生成
+　　　　　　　　　　　heatmap_path = base_url + "static/" + heatmap_filename
+
+　　　　　　　　　　　# 結果の返却
+　　　　　　　　　　　results.append({
+　　　　　　　　　　　"filename": filename,
+　　　　　　　　　　　"anomaly_score": anomaly_score,
+　　　　　　　　　　　"is_anomaly": is_anomaly,
+　　　　　　　　　　　"heatmap_path": heatmap_path  # 修正されたフルURL
+　　　　　　　　　　　})
+
         return {"results": results}
 
 if __name__ == "__main__":
