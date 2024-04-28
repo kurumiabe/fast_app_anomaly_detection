@@ -10,6 +10,7 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 from model import CustomModel, preprocess_image, generate_heatmap, calculate_anomaly_score
+from urllib.parse import urljoin
 
 app = FastAPI()
 
@@ -51,7 +52,7 @@ async def upload_zip(file: UploadFile = File(...), request: Request):
                     heatmap_filename = f"{os.path.splitext(filename)[0]}_heatmap.jpg"
                     heatmap_path = generate_heatmap(model, image_tensor, output, heatmap_filename, "static")
                     
-                    full_heatmap_path = f"{request.base_url}static/{heatmap_filename}"
+                    full_heatmap_path = urljoin(request.base_url, f"static/{heatmap_filename}")
                     
                     results.append({
                         "filename": filename,
