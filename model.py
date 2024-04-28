@@ -108,29 +108,21 @@ def preprocess_image(image_path: str, augment: bool = False) -> torch.Tensor:
     return image_tensor
 
 def generate_heatmap(model, image_tensor, output, idx, results_folder):
-    # 元の画像と再構成された画像からピクセル単位の差を計算
+    # ヒートマップ生成のプロセス
     difference = torch.abs(image_tensor - output)
-
-    # ヒートマップ用にデータを0-255のスケールに変換
-    difference = difference.squeeze().numpy()  # バッチ次元を削除
-    difference = np.transpose(difference, (1, 2, 0))  # CHWからHWCへ変換
+    difference = difference.squeeze().numpy()
+    difference = np.transpose(difference, (1, 2, 0))
     difference = np.clip(difference * 255, 0, 255).astype(np.uint8)
-
-    # ヒートマップを適用
     heatmap = cv2.applyColorMap(difference, cv2.COLORMAP_JET)
-
-    # ヒートマップをファイルに保存するパスを準備
-    heatmap_filename = f"{idx}_heatmap.jpg"
-    heatmap_path = os.path.join(results_folder, heatmap_filename)
-
+    
     # ディレクトリが存在しない場合は作成
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
-
-    # ヒートマップをファイルに保存
+    
+    heatmap_filename = f"{idx}_heatmap.jpg"
+    heatmap_path = os.path.join(results_folder, heatmap_filename)
     cv2.imwrite(heatmap_path, heatmap)
 
-    # ファイルの保存成功を確認
     if os.path.exists(heatmap_path):
         print(f"Heatmap saved successfully at {heatmap_path}")
     else:
