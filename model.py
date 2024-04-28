@@ -123,7 +123,7 @@ def generate_heatmap(model, image_tensor, output, idx, results_folder):
     """
     # 元の画像と再構成された画像からピクセル単位の差を計算
     # difference = torch.abs(image_tensor - reconstructed_image_tensor)
-    difference = torch.abs(image_tensor - **output**) # 修正箇所
+    difference = torch.abs(image_tensor - output) # 修正箇所
     
     # ヒートマップ用にデータを0-255のスケールに変換
     difference = difference.squeeze().numpy()  # バッチ次元を削除
