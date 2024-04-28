@@ -18,4 +18,4 @@ if uploaded_file is not None and st.button('分類開始'):#ファイルがア�
             else:
                 st.success("異常はありません。")
     else:
-        st.error("エラーが発生しました。")
+        st.error(f"エラーが発生しました。ステータスコード: {response.status_code}, メッセージ: {response.text}")
