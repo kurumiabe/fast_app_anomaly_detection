@@ -1,5 +1,7 @@
 import streamlit as st
+from PIL import Image
 import requests
+from io import BytesIO
 
 st.title('胡桃の異常検知アプリ')
 
@@ -13,8 +15,10 @@ if uploaded_file is not None and st.button('分類開始'):#ファイルがア�
             st.write(f"ファイル名: {result['filename']}, 異常スコア: {result['anomaly_score']:.4f}")
             if result['is_anomaly']:
                 st.error("異常が検出されました！")
-                # ヒートマップの表示
-                st.image(result['heatmap_path'], caption="Anomaly Heatmap")#異常検知の結果として得られたヒートマップを表示
+                # ヒートマップ画像を直接ロードして表示
+                response_heatmap = requests.get(result['heatmap_path'])
+                image = Image.open(BytesIO(response_heatmap.content))
+                st.image(image, caption="Anomaly Heatmap")
             else:
                 st.success("異常はありません。")
     else:
