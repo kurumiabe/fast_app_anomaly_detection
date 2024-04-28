@@ -27,7 +27,7 @@ model.eval()
 threshold = 0.05
 
 @app.post("/upload_zip/")
-async def upload_zip(file: UploadFile = File(...), request: Request):
+async def upload_zip(request: Request, file: UploadFile = File(...)):
     if file.content_type != 'application/zip':
         raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a ZIP file.")
     
