@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import JSONResponse
 import uvicorn
 import shutil
 import os
@@ -9,6 +9,7 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 from model import CustomModel, preprocess_image, generate_heatmap, calculate_anomaly_score
+import base64
 
 app = FastAPI()
 
@@ -21,8 +22,11 @@ model.eval()
 # 異常閾値
 threshold = 0.05
 
-@app.post("/upload_zip/")
+@app.post("/upload_zip/", response_class=JSONResponse)
 async def upload_zip(request: Request, file: UploadFile = File(...)):
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a ZIP file.")
+
     with TemporaryDirectory() as tmp_dir:
         zip_path = os.path.join(tmp_dir, file.filename)
         with open(zip_path, 'wb') as f:
@@ -41,16 +45,17 @@ async def upload_zip(request: Request, file: UploadFile = File(...)):
                     is_anomaly = anomaly_score > threshold
                     heatmap_path = generate_heatmap(model, image_tensor, output, filename)
                     
-                    # ヒートマップ画像を読み込んでレスポンスとして返す
+                    # ヒートマップ画像をBase64エンコードしてレスポンスに含める
                     with open(heatmap_path, "rb") as img_file:
                         img_bytes = img_file.read()
+                        img_base64 = base64.b64encode(img_bytes).decode('utf-8')
                     results.append({
                         "filename": filename,
                         "anomaly_score": anomaly_score,
                         "is_anomaly": is_anomaly,
-                        "heatmap_image": img_bytes  # バイナリデータとして画像を返す
+                        "heatmap_image": img_base64
                     })
-                    os.remove(heatmap_path)  # 一時ファイルを削除
+                    os.remove(heatmap_path)
 
         return {"results": results}
 
