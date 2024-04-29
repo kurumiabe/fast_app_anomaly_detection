@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import os
 import torch.nn as nn
+import tempfile  # tempfileをインポート
 
 class CustomModel(nn.Module):
     def __init__(self):
