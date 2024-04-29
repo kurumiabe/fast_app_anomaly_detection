@@ -1,6 +1,5 @@
-# main.py
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, Response
 import uvicorn
 import shutil
 import os
@@ -10,12 +9,8 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 from model import CustomModel, preprocess_image, generate_heatmap, calculate_anomaly_score
-from urllib.parse import urljoin
 
 app = FastAPI()
-
-# 静的ファイルのマウント
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # モデルの読み込み
 MODEL_PATH = "model/hz_model_ver1.pth"
@@ -28,15 +23,6 @@ threshold = 0.05
 
 @app.post("/upload_zip/")
 async def upload_zip(request: Request, file: UploadFile = File(...)):
-    # 現在のディレクトリをログに出力
-    print(f"Current directory: {os.getcwd()}")
-    # 'static'ディレクトリのパスを絶対パスでログに出力
-    static_dir = os.path.abspath("static")
-    print(f"Static directory path: {static_dir}")
-    
-    if file.content_type != 'application/zip':
-        raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a ZIP file.")
-    
     with TemporaryDirectory() as tmp_dir:
         zip_path = os.path.join(tmp_dir, file.filename)
         with open(zip_path, 'wb') as f:
@@ -45,35 +31,28 @@ async def upload_zip(request: Request, file: UploadFile = File(...)):
 
         results = []
         for root, _, files in os.walk(tmp_dir):
-            # `base_url` を `str()` で文字列に変換し、末尾のスラッシュを正しく処理
-            base_url = str(request.base_url).rstrip('/') + '/' # `str()` で型変換を明示
             for filename in files:
                 if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
                     img_path = os.path.join(root, filename)
                     image_tensor = preprocess_image(img_path)
-                    
                     with torch.no_grad():
                         output = model(image_tensor)
-                    
                     anomaly_score = calculate_anomaly_score(image_tensor, output)
                     is_anomaly = anomaly_score > threshold
-                    heatmap_filename = f"{os.path.splitext(filename)[0]}_heatmap.jpg"
-                    full_heatmap_path = urljoin(base_url, f"static/{heatmap_filename}")
+                    heatmap_path = generate_heatmap(model, image_tensor, output, filename)
                     
+                    # ヒートマップ画像を読み込んでレスポンスとして返す
+                    with open(heatmap_path, "rb") as img_file:
+                        img_bytes = img_file.read()
                     results.append({
                         "filename": filename,
                         "anomaly_score": anomaly_score,
                         "is_anomaly": is_anomaly,
-                        "heatmap_path": full_heatmap_path
+                        "heatmap_image": img_bytes  # バイナリデータとして画像を返す
                     })
+                    os.remove(heatmap_path)  # 一時ファイルを削除
 
         return {"results": results}
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
-
-@app.get("/debug/files")
-async def list_files():
-    files_list = os.listdir('/opt/render/project/src/static')
-    return {"files": files_list}
+    uvicorn.run(app, host="0.0.0.0", port=8000)
